@@ -35,7 +35,6 @@
 #include <cute/numeric/integral_constant.hpp>  // cute::true_type, cute::false_type
 #include <cute/numeric/integer_sequence.hpp>
 
-#include <cute/container/cuda_types.hpp>
 
 //#include <cute/container/array.hpp>            // Advanced optimizations
 

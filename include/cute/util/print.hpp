@@ -188,11 +188,6 @@ pretty_print(uint64_t const& v) {
 }
 
 CUTE_HOST_DEVICE void
-pretty_print(half_t const& v) {
-  printf("%*.2f", 8, float(v));
-}
-
-CUTE_HOST_DEVICE void
 pretty_print(float const& v) {
   printf("%*.2e", 10, v);
 }

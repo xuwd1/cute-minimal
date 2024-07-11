@@ -74,12 +74,7 @@ axpby(Alpha                    const& alpha,
       PrdTensor                const& p = {})
 {
   auto isBetaZero = [&] () {
-    if constexpr (is_complex<Beta>::value) {
-      return beta.real() == Int<0>{} && beta.imag() == Int<0>{};
-    }
-    else {
-      return beta == Int<0>{};
-    }
+    return beta == Int<0>{};
 
     CUTE_GCC_UNREACHABLE;
   } ();

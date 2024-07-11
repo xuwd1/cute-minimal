@@ -33,7 +33,6 @@
 #include <cute/config.hpp>
 
 #include <cute/util/type_traits.hpp>
-#include <cute/numeric/complex.hpp>
 
 /** C++14 <functional> extensions */
 
@@ -103,7 +102,6 @@ CUTE_RIGHT_UNARY_OP(post_increment, ++);
 CUTE_RIGHT_UNARY_OP(post_decrement, --);
 
 CUTE_NAMED_UNARY_OP(abs_fn,           abs);
-CUTE_NAMED_UNARY_OP(conjugate, cute::conj);
 
 #undef CUTE_LEFT_UNARY_OP
 #undef CUTE_RIGHT_UNARY_OP
