@@ -34,10 +34,8 @@
  * \file
  * \brief Debugging and logging functionality
  */
-#if defined(__NVCC__)
-#include <cuda_runtime_api.h>
-#endif
 
+#include <cuda_runtime_api.h>
 #include <cute/config.hpp>
 
 namespace cute
