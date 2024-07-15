@@ -234,6 +234,8 @@ struct Product
       }
     } else if constexpr (cute::is_integral<IntTuple>::value) {
       return a;
+    } else {
+      return a;
     }
 
     CUTE_GCC_UNREACHABLE;

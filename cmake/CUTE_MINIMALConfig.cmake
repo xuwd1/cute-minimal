@@ -1,0 +1,16 @@
+
+set(CUTE_MINIMAL_REPO_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
+set(CUTE_MINIMAL_INCLUDE_DIR ${CUTE_MINIMAL_REPO_DIR}/include)
+set(CUTE_MINIMAL_EXTRA_INCLUDE_DIR ${CUTE_MINIMAL_REPO_DIR}/include/extra)
+
+add_library(CUTE_MINIMAL INTERFACE)
+target_include_directories(CUTE_MINIMAL INTERFACE ${CUTE_MINIMAL_INCLUDE_DIR})
+target_include_directories(CUTE_MINIMAL INTERFACE ${CUTE_MINIMAL_EXTRA_INCLUDE_DIR})
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(
+    CUTE_MINIMAL 
+    DEFAULT_MSG 
+    CUTE_MINIMAL_INCLUDE_DIR
+    ) 
+
