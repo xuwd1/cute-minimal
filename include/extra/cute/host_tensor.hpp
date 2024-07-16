@@ -15,6 +15,8 @@
 #include <cute/pointer.hpp>
 #include <cute/layout.hpp>
 
+#include <cute/tensor.hpp>
+
 namespace cute {
 
 
