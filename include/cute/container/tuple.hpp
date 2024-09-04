@@ -35,7 +35,7 @@
 #include <cute/numeric/integral_constant.hpp>  // cute::true_type, cute::false_type
 #include <cute/numeric/integer_sequence.hpp>
 
-#include <cute/container/cuda_types.hpp>
+// #include <cute/container/cuda_types.hpp>
 #include <cute/container/type_list.hpp>
 #if defined(CUTLASS_USE_PACKED_TUPLE)
 #  include <cute/container/packed_tuple.hpp>

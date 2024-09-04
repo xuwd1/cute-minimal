@@ -133,6 +133,11 @@ struct Tensor
       : rep_(layout, engine) {
   }
 
+  CUTE_HOST_DEVICE constexpr
+  Tensor(Layout const& layout)
+      : rep_(layout, cosize(layout)) {
+  }
+
   //
   // Accessors
   //

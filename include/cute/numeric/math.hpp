@@ -33,10 +33,141 @@
 #include <cute/config.hpp>
 
 #include <cute/util/type_traits.hpp>
-#include <cutlass/fast_math.h>
 
 namespace cute
 {
+
+template <typename value_t>
+CUTE_HOST_DEVICE
+constexpr
+value_t clz(value_t x) {
+  for (int i = 31; i >= 0; --i) {
+    if ((1 << i) & x)
+      return value_t(31 - i);
+  }
+  return value_t(32);
+}
+
+template <typename value_t>
+CUTE_HOST_DEVICE
+constexpr
+value_t find_log2(value_t x) {
+  int a = int(31 - clz(x));
+  a += (x & (x - 1)) != 0;  // Round up, add 1 if not a power of 2.
+  return a;
+}
+
+
+struct FastDivmod {
+  using value_div_type = int;
+  using value_mod_type = int64_t;
+  int32_t divisor = 1;
+  uint32_t multiplier = 0u;
+  uint32_t shift_right = 0u;
+
+  // Find quotient and remainder using device-side intrinsics
+  CUTE_HOST_DEVICE
+  void fast_divmod(int& quotient, int& remainder, int dividend) const {
+
+#if defined(__CUDA_ARCH__)
+    // Use IMUL.HI if divisor != 1, else simply copy the source.
+    quotient = (divisor != 1) ? __umulhi(dividend, multiplier) >> shift_right : dividend;
+#else
+    quotient = int((divisor != 1) ? int(((int64_t)dividend * multiplier) >> 32) >> shift_right : dividend);
+#endif
+
+    // The remainder.
+    remainder = dividend - (quotient * divisor);
+  }
+
+  /// For long int input
+  CUTE_HOST_DEVICE
+  void fast_divmod(int& quotient, int64_t& remainder, int64_t dividend) const {
+
+#if defined(__CUDA_ARCH__)
+    // Use IMUL.HI if divisor != 1, else simply copy the source.
+    quotient = (divisor != 1) ? __umulhi(dividend, multiplier) >> shift_right : dividend;
+#else
+    quotient = int((divisor != 1) ? ((dividend * multiplier) >> 32) >> shift_right : dividend);
+#endif
+    // The remainder.
+    remainder = dividend - (quotient * divisor);
+  }
+
+
+  /// Construct the FastDivmod object, in host code ideally.
+  ///
+  /// This precomputes some values based on the divisor and is computationally expensive.
+
+  constexpr FastDivmod() = default;
+
+  CUTE_HOST_DEVICE
+  FastDivmod(int divisor_): divisor(divisor_) {
+    assert(divisor_ >= 0);
+    if (divisor != 1) {
+      unsigned int p = 31 + find_log2(divisor);
+      unsigned m = unsigned(((1ull << p) + unsigned(divisor) - 1) / unsigned(divisor));
+
+      multiplier = m;
+      shift_right = p - 32;
+    }
+  }
+
+  /// Computes integer division and modulus using precomputed values. This is computationally
+  /// inexpensive.
+  CUTE_HOST_DEVICE
+  void operator()(int &quotient, int &remainder, int dividend) const {
+    fast_divmod(quotient, remainder, dividend);
+  }
+
+  /// Computes integer division using precomputed values. This is computationally
+  /// inexpensive.
+  CUTE_HOST_DEVICE
+  int div(int dividend) const {
+    int quotient, remainder;
+    fast_divmod(quotient, remainder, dividend);
+    return quotient;
+  }
+
+  /// Alias for `div` to match the interface of FastDivmodU64
+  CUTE_HOST_DEVICE
+  int divide(int dividend) const {
+    return div(dividend);
+  }
+
+  /// Computes integer division and modulus using precomputed values. This is computationally
+  /// inexpensive.
+  ///
+  /// Simply returns the quotient
+  CUTE_HOST_DEVICE
+  int divmod(int &remainder, int dividend) const {
+    int quotient;
+    fast_divmod(quotient, remainder, dividend);
+    return quotient;
+  }
+
+  /// Computes integer division and modulus using precomputed values. This is computationally
+  /// inexpensive.
+  CUTE_HOST_DEVICE
+  void operator()(int &quotient, int64_t &remainder, int64_t dividend) const {
+    fast_divmod(quotient, remainder, dividend);
+  }
+
+  /// Computes integer division and modulus using precomputed values. This is computationally
+  /// inexpensive.
+  CUTE_HOST_DEVICE
+  int divmod(int64_t &remainder, int64_t dividend) const {
+    int quotient;
+    fast_divmod(quotient, remainder, dividend);
+    return quotient;
+  }
+
+  /// Returns the divisor when cast to integer
+  CUTE_HOST_DEVICE
+  operator int() const { return divisor; }
+
+};
+
 
 //
 // Common Operations
@@ -344,9 +475,9 @@ divmod(CInt0 const& a, CInt1 const& b) {
 template <class CInt>
 CUTE_HOST_DEVICE constexpr
 auto
-divmod(CInt const& a, cutlass::FastDivmod const& b) {
-  using val_div_type = typename cutlass::FastDivmod::value_div_type;
-  using val_mod_type = typename cutlass::FastDivmod::value_mod_type;
+divmod(CInt const& a, cute::FastDivmod const& b) {
+  using val_div_type = typename cute::FastDivmod::value_div_type;
+  using val_mod_type = typename cute::FastDivmod::value_mod_type;
   val_div_type div = 0;
   val_mod_type mod = 0;
   b(div, mod, a);
